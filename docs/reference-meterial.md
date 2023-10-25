@@ -15,3 +15,5 @@
 2. [李忠 / x86汇编语言：从实模式到保护模式 / 电子工业出版设](https://book.douban.com/subject/20492528/)
 
 3. [郑钢 / 操作系统真象还原 / 人民邮电出版社 ](https://book.douban.com/subject/26745156/)
+
+4. [赵炯 / Linux内核完全剖析 / 机械工业出版社](https://book.douban.com/subject/3229243/)
