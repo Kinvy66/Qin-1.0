@@ -5,4 +5,4 @@ Qin-1.0，中文名 [秦 1.0](https://santi.huijiwiki.com/wiki/%E4%BA%BA%E5%88%9
 
 
 ## 参考
-详见 [reference-meterial](./doc/reference-meterial.md)
+详见 [reference-meterial](./docs/reference-meterial.md)
