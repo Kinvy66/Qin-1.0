@@ -1,6 +1,5 @@
 %include "boot.inc"
 section loader vstart=LOADER_BASE_ADDR
-LOADER_STACK_TOP equ LOADER_BASE_ADDR
 
 ; 构建gdt
 
@@ -167,7 +166,6 @@ p_mode_start:
     lgdt [gdt_ptr]
 
     mov byte [gs:160], 'V'                    
-
    ;  jmp $		       ; 通过死循环使程序悬停在此
    jmp SELECTOR_CODE:entry_kernel
 
@@ -177,6 +175,7 @@ entry_kernel:
    jmp KERNEL_ENTRY_POINT
 
 kernel_init:
+
    xor eax, eax
    xor ebx, ebx
    xor ecx, ecx
@@ -188,21 +187,21 @@ kernel_init:
    add ebx, KERNEL_BIN_BASE_ADDR
    mov cx, [KERNEL_BIN_BASE_ADDR + 44]
 
-.each_segment:
-   cmp byte [ebx + 0], PT_NULL
-   je .PTNULL
+   .each_segment:
+      cmp byte [ebx + 0], PT_NULL
+      je .PTNULL
 
-   push dword [ebx + 16]
-   mov eax, [ebx + 4]
-   add eax, KERNEL_BIN_BASE_ADDR
-   push eax
-   push dword [ebx + 8]
-   call mem_cpy
-   add esp, 12
+      push dword [ebx + 16]   ; 参数size
+      mov eax, [ebx + 4]
+      add eax, KERNEL_BIN_BASE_ADDR
+      push eax ; 参数 src
+      push dword [ebx + 8] ; 参数dst
+      call mem_cpy
+      add esp, 12
 
-.PTNULL:
-   add ebx, edx
-   loop .each_segment
+   .PTNULL:
+      add ebx, edx
+      loop .each_segment
    ret
 
 ;----------  逐字节拷贝 mem_cpy(dst,src,size) ------------

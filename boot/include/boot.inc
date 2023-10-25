@@ -1,5 +1,6 @@
 ;----------------- loader 和 kernel ----------------
 LOADER_BASE_ADDR equ 0x900
+LOADER_STACK_TOP equ LOADER_BASE_ADDR
 LOADER_START_SECTOR equ 0x2
 KERNEL_BIN_BASE_ADDR equ 0x70000
 KERNEL_START_SECTOR equ 0x9

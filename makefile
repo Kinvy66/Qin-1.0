@@ -7,7 +7,7 @@ ASM_INCLUDE:=./boot/include/
 OBJECTS:= $(BUILD)/kernel/main.o
 
 
-ENTRYPOINT := 0xc00015000
+ENTRYPOINT := 0xc0001500
 
 GCCPREFIX := i686-elf-
 
@@ -17,6 +17,9 @@ AR	:= $(GCCPREFIX)ar
 LD	:= $(GCCPREFIX)ld
 
 
+CFLAGS = -Wall $(LIB) -c -fno-builtin -W -Wstrict-prototypes \
+         -Wmissing-prototypes 
+
 all: $(BUILD)/master.img
 
 $(BUILD)/boot/%.bin: $(SRC)/boot/%.asm
@@ -25,16 +28,15 @@ $(BUILD)/boot/%.bin: $(SRC)/boot/%.asm
 
 $(BUILD)/kernel/%.o: $(SRC)/kernel/%.c
 	$(shell mkdir -p $(dir $@))
-	$(CC)  -c $< -o $@
+	$(CC) $(CFLAGS) $< -o $@
 
 $(BUILD)/kernel.bin : $(OBJECTS)
 	$(shell mkdir -p $(dir $@))
-	$(LD) $< -Ttext $(ENTRYPOINT) -e main -o $@
+	$(LD) $< -Ttext $(ENTRYPOINT) -e main -o $@ -m elf_i386
 
 $(BUILD)/master.img: $(BUILD)/boot/boot.bin \
 	$(BUILD)/boot/loader.bin \
 	$(BUILD)/kernel.bin \
-
 
 	yes | bximage -q -hd=16 -func=create -sectsize=512 -imgmode=flat $@
 	dd if=$(BUILD)/boot/boot.bin of=$@ bs=512 count=1 conv=notrunc
