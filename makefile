@@ -1,13 +1,24 @@
 BUILD:= build
-
 SRC:= ./
 
-ASM_INCLUDE:=./boot/include/
+V := 0
 
-OBJECTS:= $(BUILD)/kernel/main.o
+ifeq ($(V),1)
+override V =
+endif
+ifeq ($(V),0)
+override V = @
+endif
 
+ASM_INCLUDE:=./boot/includes/
+INCLUDE:=-I$(SRC)/includes
+
+OBJECTS:= $(BUILD)/kernel/main.o \
+		  $(BUILD)/lib/print.o \
 
 ENTRYPOINT := 0xc0001500
+
+BUILD_MODE := debug
 
 GCCPREFIX := i686-elf-
 
@@ -16,35 +27,42 @@ AS	:= $(GCCPREFIX)as
 AR	:= $(GCCPREFIX)ar
 LD	:= $(GCCPREFIX)ld
 
+CFLAGS := -c
 
-CFLAGS = -Wall $(LIB) -c -fno-builtin -W -Wstrict-prototypes \
-         -Wmissing-prototypes 
 
 all: $(BUILD)/master.img
 
 $(BUILD)/boot/%.bin: $(SRC)/boot/%.asm
+	$(V)echo + nasm $<
 	$(shell mkdir -p $(dir $@))
-	nasm -I $(ASM_INCLUDE) -f bin $< -o $@
+	$(V)nasm -I $(ASM_INCLUDE) -f bin $< -o $@
 
 $(BUILD)/kernel/%.o: $(SRC)/kernel/%.c
+	$(V)echo + cc $<
 	$(shell mkdir -p $(dir $@))
-	$(CC) $(CFLAGS) $< -o $@
+	$(V)$(CC) $(CFLAGS) $(INCLUDE) $< -o $@
+
+$(BUILD)/lib/%.o: $(SRC)/lib/%.S
+	$(V)echo + as lib
+	$(shell mkdir -p $(dir $@))
+	$(V)nasm -f elf $< -o $@
 
 $(BUILD)/kernel.bin : $(OBJECTS)
+	$(V)echo + ld $@
 	$(shell mkdir -p $(dir $@))
-	$(LD) $< -Ttext $(ENTRYPOINT) -e main -o $@ -m elf_i386
+	$(V)$(LD) -Ttext $(ENTRYPOINT) -e main -o $@ $^ 
 
 $(BUILD)/master.img: $(BUILD)/boot/boot.bin \
 	$(BUILD)/boot/loader.bin \
 	$(BUILD)/kernel.bin \
 
-	yes | bximage -q -hd=16 -func=create -sectsize=512 -imgmode=flat $@
-	dd if=$(BUILD)/boot/boot.bin of=$@ bs=512 count=1 conv=notrunc
-	dd if=$(BUILD)/boot/loader.bin of=$@ bs=512 count=4 seek=2 conv=notrunc
-	dd if=$(BUILD)/kernel.bin of=$@ bs=512 count=200 seek=9 conv=notrunc
-
-
-test : $(OBJECTS)
+	$(V)echo + mk $@
+	$(V)if [ ! -f $@ ]; then \
+		bximage -q -hd=16 -func=create -sectsize=512 -imgmode=flat $@; \
+	fi
+	$(V)dd if=$(BUILD)/boot/boot.bin of=$@ bs=512 count=1 conv=notrunc 2>/dev/null
+	$(V)dd if=$(BUILD)/boot/loader.bin of=$@ bs=512 count=4 seek=2 conv=notrunc 2>/dev/null
+	$(V)dd if=$(BUILD)/kernel.bin of=$@ bs=512 count=200 seek=9 conv=notrunc 2>/dev/null
 
 .PHONY: bochs
 bochs: $(BUILD)/master.img
