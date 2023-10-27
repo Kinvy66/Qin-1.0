@@ -13,12 +13,14 @@ endif
 ASM_INCLUDE:=./boot/includes/
 INCLUDE := -I$(SRC)/includes
 INCLUDE += -I kernel/
+INCLUDE += -I device/
 
 OBJECTS:= $(BUILD)/kernel/main.o \
 		  $(BUILD)/lib/print.o \
 		  $(BUILD)/kernel/init.o \
 		  $(BUILD)/kernel/interrupt.o \
 		  $(BUILD)/kernel/kernel.o \
+		  $(BUILD)/device/timer.o \
 
 
 ENTRYPOINT := 0xc0001500
@@ -48,6 +50,12 @@ $(BUILD)/kernel/%.o: $(SRC)/kernel/%.S
 	$(V)nasm -f elf $< -o $@
 
 $(BUILD)/kernel/%.o: $(SRC)/kernel/%.c
+	$(V)echo + cc $<
+	$(shell mkdir -p $(dir $@))
+	$(V)$(CC) $(CFLAGS) $(INCLUDE) $< -o $@
+
+
+$(BUILD)/device/%.o: $(SRC)/device/%.c
 	$(V)echo + cc $<
 	$(shell mkdir -p $(dir $@))
 	$(V)$(CC) $(CFLAGS) $(INCLUDE) $< -o $@
