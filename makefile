@@ -11,10 +11,15 @@ override V = @
 endif
 
 ASM_INCLUDE:=./boot/includes/
-INCLUDE:=-I$(SRC)/includes
+INCLUDE := -I$(SRC)/includes
+INCLUDE += -I kernel/
 
 OBJECTS:= $(BUILD)/kernel/main.o \
 		  $(BUILD)/lib/print.o \
+		  $(BUILD)/kernel/init.o \
+		  $(BUILD)/kernel/interrupt.o \
+		  $(BUILD)/kernel/kernel.o \
+
 
 ENTRYPOINT := 0xc0001500
 
@@ -27,7 +32,7 @@ AS	:= $(GCCPREFIX)as
 AR	:= $(GCCPREFIX)ar
 LD	:= $(GCCPREFIX)ld
 
-CFLAGS := -c
+CFLAGS := -c -fno-builtin
 
 
 all: $(BUILD)/master.img
@@ -36,6 +41,11 @@ $(BUILD)/boot/%.bin: $(SRC)/boot/%.asm
 	$(V)echo + nasm $<
 	$(shell mkdir -p $(dir $@))
 	$(V)nasm -I $(ASM_INCLUDE) -f bin $< -o $@
+
+$(BUILD)/kernel/%.o: $(SRC)/kernel/%.S
+	$(V)echo + nasm $<
+	$(shell mkdir -p $(dir $@))
+	$(V)nasm -f elf $< -o $@
 
 $(BUILD)/kernel/%.o: $(SRC)/kernel/%.c
 	$(V)echo + cc $<
