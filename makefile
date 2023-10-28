@@ -1,7 +1,7 @@
 BUILD:= build
 SRC:= ./
 
-V := 0
+V := 1
 
 ifeq ($(V),1)
 override V =
@@ -10,10 +10,10 @@ ifeq ($(V),0)
 override V = @
 endif
 
-ASM_INCLUDE:=./boot/includes/
-INCLUDE := -I$(SRC)/includes
-INCLUDE += -I kernel/
-INCLUDE += -I device/
+INCLUDE := -I includes \
+			  includes/boot \
+			  includes/device \
+
 
 OBJECTS:= $(BUILD)/kernel/main.o \
 		  $(BUILD)/lib/print.o \
@@ -39,32 +39,37 @@ CFLAGS := -c -fno-builtin
 
 all: $(BUILD)/master.img
 
+# Bootloader
 $(BUILD)/boot/%.bin: $(SRC)/boot/%.asm
 	$(V)echo + nasm $<
 	$(shell mkdir -p $(dir $@))
-	$(V)nasm -I $(ASM_INCLUDE) -f bin $< -o $@
+	$(V)nasm  -I includes/boot -f bin $< -o $@
 
+# kernel header
 $(BUILD)/kernel/%.o: $(SRC)/kernel/%.S
 	$(V)echo + nasm $<
 	$(shell mkdir -p $(dir $@))
 	$(V)nasm -f elf $< -o $@
 
+# kernel c files
 $(BUILD)/kernel/%.o: $(SRC)/kernel/%.c
 	$(V)echo + cc $<
 	$(shell mkdir -p $(dir $@))
 	$(V)$(CC) $(CFLAGS) $(INCLUDE) $< -o $@
 
-
+# devices
 $(BUILD)/device/%.o: $(SRC)/device/%.c
 	$(V)echo + cc $<
 	$(shell mkdir -p $(dir $@))
 	$(V)$(CC) $(CFLAGS) $(INCLUDE) $< -o $@
 
+# libs
 $(BUILD)/lib/%.o: $(SRC)/lib/%.S
 	$(V)echo + as lib
 	$(shell mkdir -p $(dir $@))
 	$(V)nasm -f elf $< -o $@
 
+# ld kernel
 $(BUILD)/kernel.bin : $(OBJECTS)
 	$(V)echo + ld $@
 	$(shell mkdir -p $(dir $@))
