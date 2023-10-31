@@ -13,14 +13,17 @@ endif
 INCLUDE := -I includes \
 			  includes/boot \
 			  includes/device \
+			  includes/lib \
 
 
 OBJECTS:= $(BUILD)/kernel/main.o \
-		  $(BUILD)/lib/print.o \
 		  $(BUILD)/kernel/init.o \
 		  $(BUILD)/kernel/interrupt.o \
 		  $(BUILD)/kernel/kernel.o \
+		  $(BUILD)/kernel/debug.o \
 		  $(BUILD)/device/timer.o \
+		  $(BUILD)/lib/print.o \
+		  $(BUILD)/lib/string.o \
 
 
 ENTRYPOINT := 0xc0001500
@@ -35,7 +38,7 @@ AR	:= $(GCCPREFIX)ar
 LD	:= $(GCCPREFIX)ld
 
 CFLAGS := -c -fno-builtin
-
+LDFLAGS = -Ttext $(ENTRYPOINT) -e main -Map $(BUILD)/kernel.map
 
 all: $(BUILD)/master.img
 
@@ -73,7 +76,7 @@ $(BUILD)/lib/%.o: $(SRC)/lib/%.S
 $(BUILD)/kernel.bin : $(OBJECTS)
 	$(V)echo + ld $@
 	$(shell mkdir -p $(dir $@))
-	$(V)$(LD) -Ttext $(ENTRYPOINT) -e main -o $@ $^ 
+	$(V)$(LD) $(LDFLAGS) $^ -o $@ 
 
 $(BUILD)/master.img: $(BUILD)/boot/boot.bin \
 	$(BUILD)/boot/loader.bin \
