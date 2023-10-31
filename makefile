@@ -1,7 +1,7 @@
 BUILD:= build
 SRC:= ./
 
-V := 1
+V := 0
 
 ifeq ($(V),1)
 override V =
@@ -10,10 +10,7 @@ ifeq ($(V),0)
 override V = @
 endif
 
-INCLUDE := -I includes \
-			  includes/boot \
-			  includes/device \
-			  includes/lib \
+INCLUDES := -I ./includes 
 
 
 OBJECTS:= $(BUILD)/kernel/main.o \
@@ -24,6 +21,7 @@ OBJECTS:= $(BUILD)/kernel/main.o \
 		  $(BUILD)/device/timer.o \
 		  $(BUILD)/lib/print.o \
 		  $(BUILD)/lib/string.o \
+		  $(BUILD)/lib/bitmap.o \
 
 
 ENTRYPOINT := 0xc0001500
@@ -46,7 +44,7 @@ all: $(BUILD)/master.img
 $(BUILD)/boot/%.bin: $(SRC)/boot/%.asm
 	$(V)echo + nasm $<
 	$(shell mkdir -p $(dir $@))
-	$(V)nasm  -I includes/boot -f bin $< -o $@
+	$(V)nasm  $(INCLUDES) -f bin $< -o $@
 
 # kernel header
 $(BUILD)/kernel/%.o: $(SRC)/kernel/%.S
@@ -58,19 +56,25 @@ $(BUILD)/kernel/%.o: $(SRC)/kernel/%.S
 $(BUILD)/kernel/%.o: $(SRC)/kernel/%.c
 	$(V)echo + cc $<
 	$(shell mkdir -p $(dir $@))
-	$(V)$(CC) $(CFLAGS) $(INCLUDE) $< -o $@
+	$(V)$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
 
 # devices
 $(BUILD)/device/%.o: $(SRC)/device/%.c
 	$(V)echo + cc $<
 	$(shell mkdir -p $(dir $@))
-	$(V)$(CC) $(CFLAGS) $(INCLUDE) $< -o $@
+	$(V)$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
 
 # libs
 $(BUILD)/lib/%.o: $(SRC)/lib/%.S
 	$(V)echo + as lib
 	$(shell mkdir -p $(dir $@))
 	$(V)nasm -f elf $< -o $@
+
+# libs C files
+$(BUILD)/lib/%.o: $(SRC)/lib/%.c
+	$(V)echo + as lib
+	$(shell mkdir -p $(dir $@))
+	$(V)$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
 
 # ld kernel
 $(BUILD)/kernel.bin : $(OBJECTS)
