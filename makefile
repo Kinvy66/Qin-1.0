@@ -19,6 +19,7 @@ OBJECTS:= $(BUILD)/kernel/main.o \
 		  $(BUILD)/kernel/kernel.o \
 		  $(BUILD)/kernel/debug.o \
 		  $(BUILD)/kernel/mem.o \
+		  $(BUILD)/kernel/thread.o \
 		  $(BUILD)/device/timer.o \
 		  $(BUILD)/lib/print.o \
 		  $(BUILD)/lib/string.o \
