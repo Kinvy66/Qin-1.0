@@ -33,6 +33,7 @@ put_str:
    pop ecx
    pop ebx
    ret
+
 ;------------------------   put_char   -----------------------------
 ;功能描述:把栈中的1个字符写入光标所在处
 ;-------------------------------------------------------------------   
@@ -107,7 +108,7 @@ put_char:
    sub bx, dx				  ; 光标值减去除80的余数便是取整
 					  ; 以上4行处理\r的代码
 
- .is_carriage_return_end:		  ; 回车符CR处理结束
+ .is_carriage_return_end:                 ; 回车符CR处理结束
    add bx, 80
    cmp bx, 2000
  .is_line_feed_end:			  ; 若是LF(\n),将光标移+80便可。  
@@ -123,7 +124,7 @@ put_char:
 
 ;;;;;;;将最后一行填充为空白
    mov ebx, 3840			  ; 最后一行首字符的第一个字节偏移= 1920 * 2
-   mov ecx, 80				  ;一行是80字符(160字节),每次清空1字符(2字节),一行需要移动80次
+   mov ecx, 80				  ;一行是80字符(160字节),每次清理1字符(2字节),一行需要移动80次
  .cls:
    mov word [gs:ebx], 0x0720		  ;0x0720是黑底白字的空格键
    add ebx, 2
@@ -150,7 +151,6 @@ put_char:
  .put_char_done: 
    popad
    ret
-
 
 ;--------------------   将小端字节序的数字变成对应的ascii后，倒置   -----------------------
 ;输入：栈中参数为待打印的数字
@@ -213,5 +213,27 @@ put_int:
    mov cl, [put_int_buffer+edi]	       ; 获取下一个字符到cl寄存器
    cmp edi,8
    jl .put_each_num
+   popad
+   ret
+
+global set_cursor
+set_cursor:
+   pushad
+   mov bx, [esp+36]
+;;;;;;; 1 先设置高8位 ;;;;;;;;
+   mov dx, 0x03d4			  ;索引寄存器
+   mov al, 0x0e				  ;用于提供光标位置的高8位
+   out dx, al
+   mov dx, 0x03d5			  ;通过读写数据端口0x3d5来获得或设置光标位置 
+   mov al, bh
+   out dx, al
+
+;;;;;;; 2 再设置低8位 ;;;;;;;;;
+   mov dx, 0x03d4
+   mov al, 0x0f
+   out dx, al
+   mov dx, 0x03d5 
+   mov al, bl
+   out dx, al
    popad
    ret
