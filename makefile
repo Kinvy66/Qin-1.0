@@ -24,6 +24,7 @@ OBJECTS:= $(BUILD)/kernel/main.o \
 		  $(BUILD)/lib/print.o \
 		  $(BUILD)/lib/string.o \
 		  $(BUILD)/lib/bitmap.o \
+		  $(BUILD)/lib/list.o \
 
 
 ENTRYPOINT := 0xc0001500
